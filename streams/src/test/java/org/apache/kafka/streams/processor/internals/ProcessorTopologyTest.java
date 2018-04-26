@@ -29,6 +29,8 @@ import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
+import org.apache.kafka.streams.processor.PunctuationType;
+import org.apache.kafka.streams.processor.Punctuator;
 import org.apache.kafka.streams.processor.StateStoreSupplier;
 import org.apache.kafka.streams.processor.StreamPartitioner;
 import org.apache.kafka.streams.processor.TimestampExtractor;
@@ -461,15 +463,27 @@ public class ProcessorTopologyTest {
      * A processor that simply forwards all messages to all children.
      */
     protected static class ForwardingProcessor extends AbstractProcessor<String, String> {
+
+        @Override
+        public void init(final ProcessorContext context) {
+            super.init(context);
+            context().schedule(
+                100,
+                PunctuationType.STREAM_TIME,
+                new Punctuator() {
+                    @Override
+                    public void punctuate(final long timestamp) {
+                        context().forward(Long.toString(timestamp), "punctuate");
+                    }
+                }
+            );
+        }
+
         @Override
         public void process(final String key, final String value) {
             context().forward(key, value);
         }
 
-        @Override
-        public void punctuate(final long streamTime) {
-            context().forward(Long.toString(streamTime), "punctuate");
-        }
     }
 
     /**

@@ -25,6 +25,7 @@ import org.apache.kafka.streams.Topology;
 import org.apache.kafka.streams.TopologyDescription;
 import org.apache.kafka.streams.errors.StreamsException;
 import org.apache.kafka.streams.errors.TopologyException;
+import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
@@ -596,21 +597,15 @@ public class InternalTopologyBuilderTest {
 
         @Override
         public Processor get() {
-            return new Processor() {
+            return new AbstractProcessor() {
                 @Override
                 public void init(final ProcessorContext context) {
-                    context.getStateStore(STORE_NAME);
+                    super.init(context);
+                    context().getStateStore(STORE_NAME);
                 }
 
                 @Override
                 public void process(final Object key, final Object value) { }
-
-                @Override
-                public void punctuate(final long timestamp) { }
-
-                @Override
-                public void close() {
-                }
             };
         }
     }

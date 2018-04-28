@@ -18,6 +18,7 @@ package org.apache.kafka.streams;
 
 import org.apache.kafka.streams.errors.StreamsException;
 import org.apache.kafka.streams.errors.TopologyException;
+import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
@@ -287,21 +288,15 @@ public class TopologyTest {
 
         @Override
         public Processor get() {
-            return new Processor() {
+            return new AbstractProcessor() {
                 @Override
                 public void init(ProcessorContext context) {
-                    context.getStateStore(STORE_NAME);
+                    super.init(context);
+                    context().getStateStore(STORE_NAME);
                 }
 
                 @Override
                 public void process(Object key, Object value) { }
-
-                @SuppressWarnings("deprecation")
-                @Override
-                public void punctuate(long timestamp) { }
-
-                @Override
-                public void close() { }
             };
         }
     }

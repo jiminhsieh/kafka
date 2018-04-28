@@ -29,6 +29,7 @@ import org.apache.kafka.common.utils.Bytes;
 import org.apache.kafka.common.utils.SystemTime;
 import org.apache.kafka.streams.kstream.Materialized;
 import org.apache.kafka.streams.errors.TopologyException;
+import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
@@ -855,11 +856,12 @@ public class TopologyTestDriverTest {
             new ProcessorSupplier() {
                 @Override
                 public Processor get() {
-                    return new Processor<String, Long>() {
+                    return new AbstractProcessor<String, Long>() {
                         private KeyValueStore<String, Long> store;
 
                         @Override
                         public void init(final ProcessorContext context) {
+                            super.init(context);
                             //noinspection unchecked
                             this.store = (KeyValueStore<String, Long>) context.getStateStore("storeProcessorStore");
                         }
@@ -868,12 +870,6 @@ public class TopologyTestDriverTest {
                         public void process(final String key, final Long value) {
                             store.put(key, value);
                         }
-
-                        @Override
-                        public void punctuate(final long timestamp) {}
-
-                        @Override
-                        public void close() {}
                     };
                 }
             },

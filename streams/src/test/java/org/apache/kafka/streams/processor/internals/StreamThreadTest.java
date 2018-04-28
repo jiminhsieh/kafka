@@ -45,6 +45,7 @@ import org.apache.kafka.streams.kstream.internals.InternalStreamsBuilder;
 import org.apache.kafka.streams.kstream.internals.InternalStreamsBuilderTest;
 import org.apache.kafka.streams.kstream.internals.MaterializedInternal;
 import org.apache.kafka.streams.processor.LogAndSkipOnInvalidTimestamp;
+import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
@@ -874,16 +875,17 @@ public class StreamThreadTest {
         final ProcessorSupplier<Object, Object> punctuateProcessor = new ProcessorSupplier<Object, Object>() {
             @Override
             public Processor<Object, Object> get() {
-                return new Processor<Object, Object>() {
+                return new AbstractProcessor<Object, Object>() {
                     @Override
                     public void init(final ProcessorContext context) {
-                        context.schedule(100L, PunctuationType.STREAM_TIME, new Punctuator() {
+                        super.init(context);
+                        context().schedule(100L, PunctuationType.STREAM_TIME, new Punctuator() {
                             @Override
                             public void punctuate(final long timestamp) {
                                 punctuatedStreamTime.add(timestamp);
                             }
                         });
-                        context.schedule(100L, PunctuationType.WALL_CLOCK_TIME, new Punctuator() {
+                        context().schedule(100L, PunctuationType.WALL_CLOCK_TIME, new Punctuator() {
                             @Override
                             public void punctuate(final long timestamp) {
                                 punctuatedWallClockTime.add(timestamp);
@@ -893,9 +895,6 @@ public class StreamThreadTest {
 
                     @Override
                     public void process(final Object key, final Object value) {}
-
-                    @Override
-                    public void close() {}
                 };
             }
         };

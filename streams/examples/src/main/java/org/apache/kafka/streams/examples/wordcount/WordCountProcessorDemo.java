@@ -22,6 +22,7 @@ import org.apache.kafka.streams.KafkaStreams;
 import org.apache.kafka.streams.KeyValue;
 import org.apache.kafka.streams.StreamsConfig;
 import org.apache.kafka.streams.Topology;
+import org.apache.kafka.streams.processor.AbstractProcessor;
 import org.apache.kafka.streams.processor.Processor;
 import org.apache.kafka.streams.processor.ProcessorContext;
 import org.apache.kafka.streams.processor.ProcessorSupplier;
@@ -53,15 +54,14 @@ public class WordCountProcessorDemo {
 
         @Override
         public Processor<String, String> get() {
-            return new Processor<String, String>() {
-                private ProcessorContext context;
+            return new AbstractProcessor<String, String>() {
                 private KeyValueStore<String, Integer> kvStore;
 
                 @Override
                 @SuppressWarnings("unchecked")
                 public void init(final ProcessorContext context) {
-                    this.context = context;
-                    this.context.schedule(1000, PunctuationType.STREAM_TIME, new Punctuator() {
+                    super.init(context);
+                    context().schedule(1000, PunctuationType.STREAM_TIME, new Punctuator() {
                         @Override
                         public void punctuate(long timestamp) {
                             try (KeyValueIterator<String, Integer> iter = kvStore.all()) {
@@ -72,16 +72,16 @@ public class WordCountProcessorDemo {
 
                                     System.out.println("[" + entry.key + ", " + entry.value + "]");
 
-                                    context.forward(entry.key, entry.value.toString());
+                                    context().forward(entry.key, entry.value.toString());
                                 }
                             }
                         }
                     });
-                    this.kvStore = (KeyValueStore<String, Integer>) context.getStateStore("Counts");
+                    this.kvStore = (KeyValueStore<String, Integer>) context().getStateStore("Counts");
                 }
 
                 @Override
-                public void process(String dummy, String line) {
+                public void process(final String dummy, final String line) {
                     String[] words = line.toLowerCase(Locale.getDefault()).split(" ");
 
                     for (String word : words) {
@@ -94,11 +94,8 @@ public class WordCountProcessorDemo {
                         }
                     }
 
-                    context.commit();
+                    context().commit();
                 }
-
-                @Override
-                public void close() {}
             };
         }
     }

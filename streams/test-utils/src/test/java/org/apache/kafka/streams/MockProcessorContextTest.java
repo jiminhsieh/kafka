@@ -341,16 +341,17 @@ public class MockProcessorContextTest {
 
     @Test
     public void shouldCapturePunctuator() {
-        final Processor<String, Long> processor = new Processor<String, Long>() {
+        final Processor<String, Long> processor = new AbstractProcessor<String, Long>() {
             @Override
             public void init(final ProcessorContext context) {
-                context.schedule(
+                super.init(context);
+                context().schedule(
                     1000L,
                     PunctuationType.WALL_CLOCK_TIME,
                     new Punctuator() {
                         @Override
                         public void punctuate(final long timestamp) {
-                            context.commit();
+                            context().commit();
                         }
                     }
                 );
@@ -358,10 +359,6 @@ public class MockProcessorContextTest {
 
             @Override
             public void process(final String key, final Long value) {
-            }
-
-            @Override
-            public void close() {
             }
         };
 

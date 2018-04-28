@@ -627,18 +627,15 @@ public class TopologyBuilderTest {
 
         @Override
         public Processor get() {
-            return new Processor() {
+            return new AbstractProcessor() {
                 @Override
                 public void init(ProcessorContext context) {
-                    context.getStateStore(STORE_NAME);
+                    super.init(context);
+                    context().getStateStore(STORE_NAME);
                 }
 
                 @Override
                 public void process(Object key, Object value) {
-                }
-
-                @Override
-                public void close() {
                 }
             };
         }
